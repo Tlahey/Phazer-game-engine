@@ -1,0 +1,53 @@
+[
+    {
+        "Id": 1,
+        "SpellName": "Boule de feu",
+        "ModelId": 5,
+        "SpellType": 2,
+        "SpellTargetType": 1,
+        "CastTime": 0,
+        "Range": 10,
+        "Alpha": 1,
+        "Damages": 0,
+        "Speed": 1,
+        "Scale": 0.4,
+        "SpellHitRange": 3,
+        "SoundIds": [4, 5],
+        "SoundVolume": 0.2,
+        "SpellScriptName": null
+    },
+    {
+        "Id": 2,
+        "SpellName": "FadeIn",
+        "ModelId": 0,
+        "SpellType": 4,
+        "SpellTargetType":0,
+        "CastTime": 0,
+        "Range": 0,
+        "Alpha": 0,
+        "Damages": 0,
+        "Speed": 0.5,
+        "Scale": 0,
+        "SpellHitRange": 0,
+        "SoundIds": [],
+        "SoundVolume": 0,
+        "SpellScriptName": "spell_fadein"
+    },
+    {
+        "Id": 3,
+        "SpellName": "FadeOut",
+        "ModelId": 0,
+        "SpellType": 4,
+        "SpellTargetType":0,
+        "CastTime": 0,
+        "Range": 0,
+        "Alpha": 0,
+        "Damages": 0,
+        "Speed": 0.5,
+        "Scale": 0,
+        "SpellHitRange": 0,
+        "SoundIds": [],
+        "SoundVolume": 0,
+        "SpellScriptName": "spell_fadeout"
+    }
+]

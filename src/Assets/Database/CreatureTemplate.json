@@ -1,0 +1,52 @@
+[
+    {
+        "Entry": 1,
+        "ModelId": 1,
+        "Name": "Hiboux",
+        "Lifes": 10,
+        "SpeedWalk": 700,
+        "SpeedRun": 750,
+        "Scale": 1,
+        "Flags": 4,
+        "Alpha": 1,
+        "SoundsIds": [1,2,3,4],
+        "TextIds": [1,2,3],
+        "ScriptName": "npc_hiboux"
+    },
+    {
+        "Entry": 2,
+        "ModelId": 2,
+        "Name": "Nuage",
+        "Lifes": 10,
+        "SpeedWalk": 750,
+        "SpeedRun": 1000,
+        "Scale": 0.5,
+        "Flags": 0,
+        "Alpha": 1,
+        "SoundsIds": [],
+        "TextIds": [],
+        "ScriptName": "npc_cloud"
+    },
+    {
+        "Entry": 3,
+        "ModelId": 3,
+        "Name": "Plume",
+        "Lifes": 10,
+        "SpeedWalk": 1,
+        "SpeedRun": 1,
+        "Scale": 0.75,
+        "Flags": 0,
+        "Alpha": 1
+    },
+    {
+        "Entry": 4,
+        "ModelId": 4,
+        "Name": "Logo Zelda",
+        "Lifes": 10,
+        "SpeedWalk": 1,
+        "SpeedRun": 1,
+        "Scale": 1.2,
+        "Flags": 0,
+        "Alpha": 0
+    }
+]

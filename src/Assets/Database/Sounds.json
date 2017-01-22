@@ -1,0 +1,26 @@
+[
+    {
+        "Id": 0,
+        "AssetName": "Hiboux/LA_Owl_Fly_Away.wav"
+    },
+    {
+        "Id": 1,
+        "AssetName": "Hiboux/LA_Owl_Fly_In.wav"
+    },
+    {
+        "Id": 2,
+        "AssetName": "Hiboux/LA_Owl_Hoot1.wav"
+    },
+    {
+        "Id": 3,
+        "AssetName": "Hiboux/LA_Owl_Hoot2.wav"
+    },
+    {
+        "Id": 4,
+        "AssetName": "Spells/Fireball/FireballLaunch.wav"
+    },
+    {
+        "Id": 5,
+        "AssetName": "Spells/Fireball/FireballHit.wav"
+    }
+]

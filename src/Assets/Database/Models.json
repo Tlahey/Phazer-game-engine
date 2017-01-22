@@ -1,0 +1,26 @@
+[
+    {
+        "Id": 0,
+        "AssetName": "pnj/invisible.png"
+    },
+    {
+        "Id": 1,
+        "AssetName": "pnj/hiboux.png"
+    },
+    {
+        "Id": 2,
+        "AssetName": "Environment/cloud.png"
+    },
+    {
+        "Id": 3,
+        "AssetName": "plume.png"
+    },
+    {
+        "Id": 4,
+        "AssetName": "ZeldaLogo.png"
+    },
+    {
+        "Id": 5,
+        "AssetName": "SpellModel/boule_feu_01.png"
+    }
+]
