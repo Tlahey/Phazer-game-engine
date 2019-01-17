@@ -1,6 +1,6 @@
-import { SimpleGame } from './../../app';
 import { Creature } from './Creature';
 import { Guid } from './../Utils/Guid';
+import { SimpleGame } from '../simpleGame';
 
 export enum SpellType
 {

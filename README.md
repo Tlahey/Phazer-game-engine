@@ -1,29 +1,36 @@
-# README #
+# Phazer game engine
 
-This README would normally document whatever steps are necessary to get your application up and running.
+TODO: Description
 
-### What is this repository for? ###
+### Prerequisites
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+TODO: Softwares needed (Typescript, npm ...)
 
-### How do I get set up? ###
+### Installation
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+You can get the latest release by cloning repo :
+```
+$ git clone https://github.com/Tlahey/LimitLimit-game.git
+```
 
-### Contribution guidelines ###
+Enter on the project
+```
+$ cd LimitLimit-game
+```
 
-* Writing tests
-* Code review
-* Other guidelines
+Download dependances
+```
+$ npm install
+```
 
-### Who do I talk to? ###
+Build the application with `tsc`
 
-* Repo owner or admin
-* Other community or team contact
+```
+$ tsc -p .
+```
+
+If all it's ok, a file `all.js` are create on root folder.
+
+### Run application
+
+For run the application, you can open `index.html` on the root folder

@@ -1,8 +1,8 @@
-/// <reference path="./node_modules/phaser/typescript/phaser.d.ts"/>
-import { npc_hiboux } from './src/Model/CreatureScript/npc_hiboux';
-import { npc_cloud } from "./src/Model/CreatureScript/npc_cloud";
-import { Dictionary } from './src/Utils/Dictionnary';
-import { DatabaseSingleton } from './src/DataBase/DatabaseSingleton';
+/// <reference path="./../node_modules/phaser/typescript/phaser.d.ts"/>
+
+import { Dictionary } from "./Utils/Dictionnary";
+
+import { DatabaseSingleton } from "./DataBase/DatabaseSingleton";
 
 export class SimpleGame {
  

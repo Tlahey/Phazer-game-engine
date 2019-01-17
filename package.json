@@ -1,0 +1,24 @@
+{
+  "name": "phazer-game-engine",
+  "description": "TODO: Description",
+  "version": "1.0.0",
+  "main": "all.js",
+  "dependencies": {
+    "phaser": "^2",
+    "systemjs": "0.19.40"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tlahey/Phazer-game-engine.git"
+  },
+  "author": "Tlahey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tlahey/Phazer-game-engine/issues"
+  },
+  "homepage": "https://github.com/Tlahey/Phazer-game-engine#readme"
+}

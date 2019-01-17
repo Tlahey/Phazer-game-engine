@@ -1,5 +1,5 @@
-import { SimpleGame } from './../../../app';
 import { Spell } from './../Spell';
+import { SimpleGame } from '../../simpleGame';
 export class spell_fadeout extends Spell {
 
 

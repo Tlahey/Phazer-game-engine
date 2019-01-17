@@ -3,7 +3,6 @@ import { Spell } from './../Model/Spell';
 import { ScriptedCreature } from './../Logical/ScriptedCreature';
 import { Flags } from './../Logical/Flags';
 import { Creature, CreatureFlags } from './../Model/Creature';
-import { SimpleGame } from './../../app';
 import { ICreature_db, ICreatureTemplate_db, IModel_db, ISound_db, ISpell_db, IText_db } from './DatabaseModel';
 import { Dictionary } from './../Utils/Dictionnary';
 

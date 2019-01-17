@@ -3,8 +3,8 @@ import { Spell } from './Spell';
 import { ICreature_db } from './../DataBase/DatabaseModel';
 import { DatabaseSingleton } from './../DataBase/DatabaseSingleton';
 import { Guid } from './../Utils/Guid';
-import { SimpleGame } from './../../app';
 import { Events } from './../Logical/Events';
+import { SimpleGame } from '../simpleGame';
 
 
 export enum CreatureFlags{

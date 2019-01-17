@@ -3,3 +3,7 @@ node_modules/
 debug.log
 all.js
 server.js
+package-lock.json
+src/**.js
+src/**.js.map
+dist/

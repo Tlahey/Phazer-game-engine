@@ -1,4 +1,3 @@
-import { SimpleGame } from './../../../app';
 import { Creature } from './../Creature';
 
 export class npc_hiboux extends Creature {

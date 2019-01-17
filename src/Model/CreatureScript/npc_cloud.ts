@@ -1,5 +1,4 @@
 import { Creature } from '../Creature';
-import { SimpleGame } from '../../../app';
 
 export class npc_cloud extends Creature {
 
