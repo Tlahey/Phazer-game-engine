@@ -33,4 +33,10 @@ If all it's ok, a file `all.js` are create on root folder.
 
 ### Run application
 
-For run the application, you can open `index.html` on the root folder
+For run the application, you can open `index.html` on the root folder or you can lauched the express server with 
+
+```
+$ node expressServer.js
+```
+
+Go after on url `http://localhost:3000` by default.
