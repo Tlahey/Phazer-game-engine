@@ -8,7 +8,8 @@
     "systemjs": "0.19.40"
   },
   "devDependencies": {
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "typescript": "^3.6.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
