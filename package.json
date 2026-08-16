@@ -4,12 +4,12 @@
   "version": "1.0.0",
   "main": "all.js",
   "dependencies": {
-    "phaser": "^2",
+    "phaser": "^3.90.0",
     "systemjs": "0.19.40"
   },
   "devDependencies": {
     "express": "^4.16.4",
-    "typescript": "^3.6.3"
+    "typescript": "^5.6.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

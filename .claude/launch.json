@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "phazer-express",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["expressServer.js"],
+      "port": 3000
+    }
+  ]
+}
