@@ -13,7 +13,8 @@
     "outFile": "./app.js"
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.ts"
   ],
   "include": [
         "./packages/*/src/**/*.ts",
