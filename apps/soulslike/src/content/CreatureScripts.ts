@@ -1,5 +1,6 @@
 import { Boss } from './../entities/Boss';
 import { Mob } from './../entities/Mob';
+import { SentinelBoss } from './../entities/SentinelBoss';
 import { creatureScripts } from './GameContent';
 
 /**
@@ -13,4 +14,7 @@ export function registerCreatureScripts(): void {
 
     creatureScripts.register('mob_patrol_wretch', (scene, spawn, arenaExtent, player) =>
         new Mob(scene, spawn.worldX, spawn.worldY, arenaExtent, player));
+
+    creatureScripts.register('boss_ashen_sentinel', (scene, spawn, arenaExtent, player, template) =>
+        new SentinelBoss(scene, spawn.worldX, spawn.worldY, arenaExtent, player, template.name));
 }

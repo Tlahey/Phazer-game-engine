@@ -1,10 +1,8 @@
 import { IsoMath } from '@phazer/engine';
 import { PlayerInput } from './../input/PlayerInput';
 import { Player } from './../entities/Player';
-import { Boss } from './../entities/Boss';
-import { Mob } from './../entities/Mob';
 import { Portal } from './../entities/Portal';
-import { contentDatabase, creatureScripts } from './../content/GameContent';
+import { contentDatabase, creatureScripts, UpdatableEntity, BossLike } from './../content/GameContent';
 
 const PORTAL_TRIGGER_DISTANCE = 0.6; // world units
 const RESULT_RETURN_DELAY = 2500;    // ms before auto-returning after a boss/player death
@@ -36,8 +34,8 @@ export class ArenaScene extends Phaser.Scene {
     private entryY: number;
 
     private player: Player;
-    private creatures: (Boss | Mob)[] = [];
-    private activeBoss?: Boss;
+    private creatures: UpdatableEntity[] = [];
+    private activeBoss?: BossLike;
     private portals: ActivePortal[] = [];
     private hasTransitioned = false;
 
@@ -76,8 +74,8 @@ export class ArenaScene extends Phaser.Scene {
             const template = contentDatabase.getTemplate(spawn.entry);
             const creature = creatureScripts.create(template.scriptName, this, spawn, instance.arenaExtent, this.player, template);
             this.add.existing(creature);
-            if (creature instanceof Boss) {
-                this.activeBoss = creature;
+            if (template.isBoss) {
+                this.activeBoss = creature as BossLike;
             }
             return creature;
         });

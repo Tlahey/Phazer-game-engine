@@ -2,11 +2,19 @@
     {
         "entry": 1,
         "name": "The Hollowed Warden",
-        "scriptName": "boss_hollowed_warden"
+        "scriptName": "boss_hollowed_warden",
+        "isBoss": true
     },
     {
         "entry": 2,
         "name": "Wretched Skitterling",
-        "scriptName": "mob_patrol_wretch"
+        "scriptName": "mob_patrol_wretch",
+        "isBoss": false
+    },
+    {
+        "entry": 3,
+        "name": "The Ashen Sentinel",
+        "scriptName": "boss_ashen_sentinel",
+        "isBoss": true
     }
 ]

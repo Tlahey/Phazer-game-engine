@@ -599,297 +599,14 @@ System.register("apps/soulslike/src/entities/Player", ["packages/engine/src/inde
         }
     };
 });
-System.register("apps/soulslike/src/entities/Boss", ["packages/engine/src/index", "apps/soulslike/src/entities/IsoEntity"], function (exports_12, context_12) {
+System.register("apps/soulslike/src/entities/Portal", ["apps/soulslike/src/entities/IsoEntity"], function (exports_12, context_12) {
     "use strict";
-    var engine_3, IsoEntity_2, ATTACK_RANGE, CHASE_SPEED, LUNGE_SPEED, TELEGRAPH_DURATION, LUNGE_DURATION, RECOVER_DURATION, HIT_RADIUS, MAX_HEALTH, Boss;
+    var IsoEntity_2, PULSE_PERIOD, Portal;
     var __moduleName = context_12 && context_12.id;
     return {
         setters: [
-            function (engine_3_1) {
-                engine_3 = engine_3_1;
-            },
             function (IsoEntity_2_1) {
                 IsoEntity_2 = IsoEntity_2_1;
-            }
-        ],
-        execute: function () {
-            ATTACK_RANGE = 2.2; // world units, distance at which the boss commits to an attack
-            CHASE_SPEED = 1.6; // world units/sec
-            LUNGE_SPEED = 9.5; // world units/sec
-            TELEGRAPH_DURATION = 500; // ms, red/white flicker before the lunge fires
-            LUNGE_DURATION = 260; // ms
-            RECOVER_DURATION = 650; // ms, boss is dimmed and stationary
-            HIT_RADIUS = 1.1; // world units, lunge hitbox vs. player
-            MAX_HEALTH = 5;
-            Boss = class Boss extends IsoEntity_2.IsoEntity {
-                constructor(scene, worldX, worldY, arenaExtent, player, name) {
-                    super(scene, worldX, worldY, arenaExtent);
-                    this.health = MAX_HEALTH;
-                    this.stateTimer = 0;
-                    this.lungeDirX = 0;
-                    this.lungeDirY = 0;
-                    this.hasHitThisLunge = false;
-                    this.player = player;
-                    this.displayName = name;
-                    const body = scene.add.polygon(0, 0, [
-                        0, -46,
-                        34, -18,
-                        30, 30,
-                        0, 46,
-                        -30, 30,
-                        -34, -18
-                    ], 0x2c1320).setStrokeStyle(3, 0x0c0508);
-                    const hornLeft = scene.add.triangle(0, 0, -22, -36, -34, -70, -8, -42, 0x120609);
-                    const hornRight = scene.add.triangle(0, 0, 22, -36, 34, -70, 8, -42, 0x120609);
-                    this.eye = scene.add.ellipse(0, -8, 20, 10, 0xff2d2d);
-                    this.add([body, hornLeft, hornRight, this.eye]);
-                    this.fsm = new engine_3.StateMachine(this, Boss.States, 'chase');
-                }
-                get Name() {
-                    return this.displayName;
-                }
-                get Health() {
-                    return this.health;
-                }
-                get MaxHealth() {
-                    return MAX_HEALTH;
-                }
-                get IsDead() {
-                    return this.fsm.Current === 'dead';
-                }
-                update(deltaMs, originX, originY) {
-                    if (!this.IsDead) {
-                        this.checkPlayerAttack();
-                    }
-                    this.fsm.update(deltaMs);
-                    this.syncScreenPosition(originX, originY);
-                }
-                checkPlayerAttack() {
-                    if (!this.player.IsAttackActive) {
-                        return;
-                    }
-                    const dist = Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
-                    if (dist <= this.player.AttackRange && this.player.ConsumeAttackHit()) {
-                        this.takeDamage(1);
-                    }
-                }
-                takeDamage(amount) {
-                    this.health = Math.max(0, this.health - amount);
-                    if (this.health <= 0) {
-                        this.fsm.transition('dead');
-                    }
-                }
-                updateChase(deltaMs) {
-                    const dt = deltaMs / 1000;
-                    const dx = this.player.WorldX - this.worldX;
-                    const dy = this.player.WorldY - this.worldY;
-                    const dist = Math.hypot(dx, dy);
-                    if (dist <= 0.001) {
-                        return;
-                    }
-                    const dirX = dx / dist;
-                    const dirY = dy / dist;
-                    this.setScale(dirX < 0 ? -1 : 1, 1);
-                    if (dist > ATTACK_RANGE) {
-                        const moved = this.clampToArena(this.worldX + dirX * CHASE_SPEED * dt, this.worldY + dirY * CHASE_SPEED * dt);
-                        this.worldX = moved.x;
-                        this.worldY = moved.y;
-                    }
-                    else {
-                        this.stateTimer = TELEGRAPH_DURATION;
-                        return 'telegraph';
-                    }
-                }
-                updateTelegraph(deltaMs) {
-                    this.eye.setFillStyle(this.stateTimer % 200 < 100 ? 0xffffff : 0xff2d2d);
-                    this.stateTimer -= deltaMs;
-                    if (this.stateTimer > 0) {
-                        return;
-                    }
-                    const dx = this.player.WorldX - this.worldX;
-                    const dy = this.player.WorldY - this.worldY;
-                    const dist = Math.hypot(dx, dy) || 1;
-                    this.lungeDirX = dx / dist;
-                    this.lungeDirY = dy / dist;
-                    this.stateTimer = LUNGE_DURATION;
-                    return 'lunge';
-                }
-                updateLunge(deltaMs) {
-                    const dt = deltaMs / 1000;
-                    const moved = this.clampToArena(this.worldX + this.lungeDirX * LUNGE_SPEED * dt, this.worldY + this.lungeDirY * LUNGE_SPEED * dt);
-                    this.worldX = moved.x;
-                    this.worldY = moved.y;
-                    if (!this.hasHitThisLunge) {
-                        const hitDist = Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
-                        if (hitDist <= HIT_RADIUS) {
-                            this.hasHitThisLunge = true;
-                            this.player.TakeDamage(this.worldX, this.worldY);
-                        }
-                    }
-                    this.stateTimer -= deltaMs;
-                    if (this.stateTimer <= 0) {
-                        return 'recover';
-                    }
-                }
-                updateRecover(deltaMs) {
-                    this.stateTimer -= deltaMs;
-                    if (this.stateTimer <= 0) {
-                        return 'chase';
-                    }
-                }
-            };
-            exports_12("Boss", Boss);
-            Boss.States = {
-                chase: {
-                    onEnter: boss => {
-                        boss.alpha = 1;
-                        boss.eye.setFillStyle(0xff2d2d);
-                    },
-                    onUpdate: (boss, deltaMs) => boss.updateChase(deltaMs)
-                },
-                telegraph: {
-                    onUpdate: (boss, deltaMs) => boss.updateTelegraph(deltaMs)
-                },
-                lunge: {
-                    onEnter: boss => {
-                        boss.hasHitThisLunge = false;
-                    },
-                    onUpdate: (boss, deltaMs) => boss.updateLunge(deltaMs)
-                },
-                recover: {
-                    onEnter: boss => {
-                        boss.alpha = 0.7;
-                        boss.eye.setFillStyle(0x662222);
-                        boss.stateTimer = RECOVER_DURATION;
-                    },
-                    onUpdate: (boss, deltaMs) => boss.updateRecover(deltaMs)
-                },
-                dead: {
-                    onEnter: boss => {
-                        boss.alpha = 0.35;
-                        boss.eye.setFillStyle(0x000000);
-                    }
-                }
-            };
-        }
-    };
-});
-System.register("apps/soulslike/src/entities/Mob", ["packages/engine/src/index", "apps/soulslike/src/entities/IsoEntity"], function (exports_13, context_13) {
-    "use strict";
-    var engine_4, IsoEntity_3, PATROL_SPEED, CHASE_SPEED, PATROL_DISTANCE, ARRIVE_THRESHOLD, AGGRO_RANGE, DEAGGRO_RANGE, ATTACK_RANGE, ATTACK_COOLDOWN, Mob;
-    var __moduleName = context_13 && context_13.id;
-    return {
-        setters: [
-            function (engine_4_1) {
-                engine_4 = engine_4_1;
-            },
-            function (IsoEntity_3_1) {
-                IsoEntity_3 = IsoEntity_3_1;
-            }
-        ],
-        execute: function () {
-            PATROL_SPEED = 0.7; // world units/sec
-            CHASE_SPEED = 1.1; // world units/sec, slower than the boss's chase
-            PATROL_DISTANCE = 1.4; // world units from spawn point
-            ARRIVE_THRESHOLD = 0.05; // world units
-            AGGRO_RANGE = 2.5; // world units, starts the chase
-            DEAGGRO_RANGE = 3.6; // world units, larger than AGGRO_RANGE to avoid state flicker at the boundary
-            ATTACK_RANGE = 0.7; // world units, contact range
-            ATTACK_COOLDOWN = 900; // ms between contact hits
-            /**
-             * Weak, simple hostile: paces between its spawn point and a short offset
-             * until the player wanders within AGGRO_RANGE, then closes in and deals
-             * contact damage on a cooldown — no telegraph/lunge theater like the Boss,
-             * just a fast weak nuisance you're expected to shrug off or dodge.
-             */
-            Mob = class Mob extends IsoEntity_3.IsoEntity {
-                constructor(scene, worldX, worldY, arenaExtent, player) {
-                    super(scene, worldX, worldY, arenaExtent);
-                    this.attackCooldown = 0;
-                    this.player = player;
-                    this.spawnX = worldX;
-                    this.spawnY = worldY;
-                    this.offsetX = worldX + PATROL_DISTANCE;
-                    this.offsetY = worldY;
-                    const body = scene.add.circle(0, 0, 16, 0x1f2417).setStrokeStyle(2, 0x0c0d08);
-                    const spike = scene.add.triangle(0, 0, 0, -20, -6, -6, 6, -6, 0x0c0d08);
-                    this.add([body, spike]);
-                    this.fsm = new engine_4.StateMachine(this, Mob.States, 'toOffset');
-                }
-                update(deltaMs, originX, originY) {
-                    if (this.attackCooldown > 0) {
-                        this.attackCooldown = Math.max(0, this.attackCooldown - deltaMs);
-                    }
-                    this.fsm.update(deltaMs);
-                    this.syncScreenPosition(originX, originY);
-                }
-                distanceToPlayer() {
-                    return Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
-                }
-                checkAggro() {
-                    if (this.distanceToPlayer() <= AGGRO_RANGE) {
-                        return 'chase';
-                    }
-                }
-                updateChase(deltaMs) {
-                    const dist = this.distanceToPlayer();
-                    if (dist > DEAGGRO_RANGE) {
-                        return 'toSpawn';
-                    }
-                    if (dist > ATTACK_RANGE) {
-                        const dt = deltaMs / 1000;
-                        const dirX = (this.player.WorldX - this.worldX) / dist;
-                        const dirY = (this.player.WorldY - this.worldY) / dist;
-                        const moved = this.clampToArena(this.worldX + dirX * CHASE_SPEED * dt, this.worldY + dirY * CHASE_SPEED * dt);
-                        this.worldX = moved.x;
-                        this.worldY = moved.y;
-                        this.setScale(dirX < 0 ? -1 : 1, 1);
-                    }
-                    else if (this.attackCooldown <= 0) {
-                        this.attackCooldown = ATTACK_COOLDOWN;
-                        this.player.TakeDamage(this.worldX, this.worldY);
-                    }
-                }
-                moveToward(targetX, targetY, deltaMs, nextState) {
-                    const dt = deltaMs / 1000;
-                    const dx = targetX - this.worldX;
-                    const dy = targetY - this.worldY;
-                    const dist = Math.hypot(dx, dy);
-                    if (dist <= ARRIVE_THRESHOLD) {
-                        return nextState;
-                    }
-                    const dirX = dx / dist;
-                    const dirY = dy / dist;
-                    const step = Math.min(PATROL_SPEED * dt, dist);
-                    const moved = this.clampToArena(this.worldX + dirX * step, this.worldY + dirY * step);
-                    this.worldX = moved.x;
-                    this.worldY = moved.y;
-                    this.setScale(dirX < 0 ? -1 : 1, 1);
-                }
-            };
-            exports_13("Mob", Mob);
-            Mob.States = {
-                toOffset: {
-                    onUpdate: (mob, deltaMs) => { var _a; return (_a = mob.checkAggro()) !== null && _a !== void 0 ? _a : mob.moveToward(mob.offsetX, mob.offsetY, deltaMs, 'toSpawn'); }
-                },
-                toSpawn: {
-                    onUpdate: (mob, deltaMs) => { var _a; return (_a = mob.checkAggro()) !== null && _a !== void 0 ? _a : mob.moveToward(mob.spawnX, mob.spawnY, deltaMs, 'toOffset'); }
-                },
-                chase: {
-                    onUpdate: (mob, deltaMs) => mob.updateChase(deltaMs)
-                }
-            };
-        }
-    };
-});
-System.register("apps/soulslike/src/entities/Portal", ["apps/soulslike/src/entities/IsoEntity"], function (exports_14, context_14) {
-    "use strict";
-    var IsoEntity_4, PULSE_PERIOD, Portal;
-    var __moduleName = context_14 && context_14.id;
-    return {
-        setters: [
-            function (IsoEntity_4_1) {
-                IsoEntity_4 = IsoEntity_4_1;
             }
         ],
         execute: function () {
@@ -899,7 +616,7 @@ System.register("apps/soulslike/src/entities/Portal", ["apps/soulslike/src/entit
              * owns the proximity check and the actual scene transition, since only the
              * scene can call `this.scene.start(...)`.
              */
-            Portal = class Portal extends IsoEntity_4.IsoEntity {
+            Portal = class Portal extends IsoEntity_2.IsoEntity {
                 constructor(scene, worldX, worldY, arenaExtent) {
                     super(scene, worldX, worldY, arenaExtent);
                     this.pulseTimer = 0;
@@ -913,44 +630,41 @@ System.register("apps/soulslike/src/entities/Portal", ["apps/soulslike/src/entit
                     this.syncScreenPosition(originX, originY);
                 }
             };
-            exports_14("Portal", Portal);
+            exports_12("Portal", Portal);
         }
     };
 });
-System.register("apps/soulslike/src/content/GameContent", ["packages/engine/src/index"], function (exports_15, context_15) {
+System.register("apps/soulslike/src/content/GameContent", ["packages/engine/src/index"], function (exports_13, context_13) {
     "use strict";
-    var engine_5, contentDatabase, creatureScripts;
-    var __moduleName = context_15 && context_15.id;
+    var engine_3, contentDatabase, creatureScripts;
+    var __moduleName = context_13 && context_13.id;
     return {
         setters: [
-            function (engine_5_1) {
-                engine_5 = engine_5_1;
+            function (engine_3_1) {
+                engine_3 = engine_3_1;
             }
         ],
         execute: function () {
             /** Shared, app-wide instances: one content database, one creature script registry. */
-            exports_15("contentDatabase", contentDatabase = new engine_5.ContentDatabase());
-            exports_15("creatureScripts", creatureScripts = new engine_5.ScriptRegistry());
+            exports_13("contentDatabase", contentDatabase = new engine_3.ContentDatabase());
+            exports_13("creatureScripts", creatureScripts = new engine_3.ScriptRegistry());
         }
     };
 });
-System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/index", "apps/soulslike/src/input/PlayerInput", "apps/soulslike/src/entities/Player", "apps/soulslike/src/entities/Boss", "apps/soulslike/src/entities/Portal", "apps/soulslike/src/content/GameContent"], function (exports_16, context_16) {
+System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/index", "apps/soulslike/src/input/PlayerInput", "apps/soulslike/src/entities/Player", "apps/soulslike/src/entities/Portal", "apps/soulslike/src/content/GameContent"], function (exports_14, context_14) {
     "use strict";
-    var engine_6, PlayerInput_1, Player_1, Boss_1, Portal_1, GameContent_1, PORTAL_TRIGGER_DISTANCE, RESULT_RETURN_DELAY, BOSS_BAR_WIDTH, ArenaScene;
-    var __moduleName = context_16 && context_16.id;
+    var engine_4, PlayerInput_1, Player_1, Portal_1, GameContent_1, PORTAL_TRIGGER_DISTANCE, RESULT_RETURN_DELAY, BOSS_BAR_WIDTH, ArenaScene;
+    var __moduleName = context_14 && context_14.id;
     return {
         setters: [
-            function (engine_6_1) {
-                engine_6 = engine_6_1;
+            function (engine_4_1) {
+                engine_4 = engine_4_1;
             },
             function (PlayerInput_1_1) {
                 PlayerInput_1 = PlayerInput_1_1;
             },
             function (Player_1_1) {
                 Player_1 = Player_1_1;
-            },
-            function (Boss_1_1) {
-                Boss_1 = Boss_1_1;
             },
             function (Portal_1_1) {
                 Portal_1 = Portal_1_1;
@@ -997,7 +711,7 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                         const template = GameContent_1.contentDatabase.getTemplate(spawn.entry);
                         const creature = GameContent_1.creatureScripts.create(template.scriptName, this, spawn, instance.arenaExtent, this.player, template);
                         this.add.existing(creature);
-                        if (creature instanceof Boss_1.Boss) {
+                        if (template.isBoss) {
                             this.activeBoss = creature;
                         }
                         return creature;
@@ -1112,8 +826,8 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                     if (this.textures.exists('tile_a')) {
                         return;
                     }
-                    const halfW = engine_6.IsoMath.TILE_WIDTH / 2;
-                    const halfH = engine_6.IsoMath.TILE_HEIGHT / 2;
+                    const halfW = engine_4.IsoMath.TILE_WIDTH / 2;
+                    const halfH = engine_4.IsoMath.TILE_HEIGHT / 2;
                     const graphics = this.add.graphics();
                     [
                         { key: 'tile_a', fill: 0x3a3226 },
@@ -1124,13 +838,13 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                         graphics.lineStyle(1, 0x1b1710, 1);
                         graphics.beginPath();
                         graphics.moveTo(halfW, 0);
-                        graphics.lineTo(engine_6.IsoMath.TILE_WIDTH, halfH);
-                        graphics.lineTo(halfW, engine_6.IsoMath.TILE_HEIGHT);
+                        graphics.lineTo(engine_4.IsoMath.TILE_WIDTH, halfH);
+                        graphics.lineTo(halfW, engine_4.IsoMath.TILE_HEIGHT);
                         graphics.lineTo(0, halfH);
                         graphics.closePath();
                         graphics.fillPath();
                         graphics.strokePath();
-                        graphics.generateTexture(tile.key, engine_6.IsoMath.TILE_WIDTH, engine_6.IsoMath.TILE_HEIGHT);
+                        graphics.generateTexture(tile.key, engine_4.IsoMath.TILE_WIDTH, engine_4.IsoMath.TILE_HEIGHT);
                     });
                     graphics.destroy();
                 }
@@ -1138,7 +852,7 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                     const gridRadius = Math.ceil(arenaExtent);
                     for (let gx = -gridRadius; gx <= gridRadius; gx++) {
                         for (let gy = -gridRadius; gy <= gridRadius; gy++) {
-                            const screen = engine_6.IsoMath.toScreen(gx, gy);
+                            const screen = engine_4.IsoMath.toScreen(gx, gy);
                             const key = (gx + gy) % 2 === 0 ? 'tile_a' : 'tile_b';
                             const tile = this.add.image(this.originX + screen.x, this.originY + screen.y, key);
                             tile.setDepth(screen.y);
@@ -1146,31 +860,464 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                     }
                 }
             };
-            exports_16("ArenaScene", ArenaScene);
+            exports_14("ArenaScene", ArenaScene);
         }
     };
 });
-System.register("apps/soulslike/src/content/CreatureScripts", ["apps/soulslike/src/entities/Boss", "apps/soulslike/src/entities/Mob", "apps/soulslike/src/content/GameContent"], function (exports_17, context_17) {
+System.register("apps/soulslike/src/entities/Boss", ["packages/engine/src/index", "apps/soulslike/src/entities/IsoEntity"], function (exports_15, context_15) {
     "use strict";
-    var Boss_2, Mob_1, GameContent_2;
+    var engine_5, IsoEntity_3, ATTACK_RANGE, CHASE_SPEED, LUNGE_SPEED, TELEGRAPH_DURATION, LUNGE_DURATION, RECOVER_DURATION, HIT_RADIUS, MAX_HEALTH, Boss;
+    var __moduleName = context_15 && context_15.id;
+    return {
+        setters: [
+            function (engine_5_1) {
+                engine_5 = engine_5_1;
+            },
+            function (IsoEntity_3_1) {
+                IsoEntity_3 = IsoEntity_3_1;
+            }
+        ],
+        execute: function () {
+            ATTACK_RANGE = 2.2; // world units, distance at which the boss commits to an attack
+            CHASE_SPEED = 1.6; // world units/sec
+            LUNGE_SPEED = 9.5; // world units/sec
+            TELEGRAPH_DURATION = 500; // ms, red/white flicker before the lunge fires
+            LUNGE_DURATION = 260; // ms
+            RECOVER_DURATION = 650; // ms, boss is dimmed and stationary
+            HIT_RADIUS = 1.1; // world units, lunge hitbox vs. player
+            MAX_HEALTH = 5;
+            Boss = class Boss extends IsoEntity_3.IsoEntity {
+                constructor(scene, worldX, worldY, arenaExtent, player, name) {
+                    super(scene, worldX, worldY, arenaExtent);
+                    this.health = MAX_HEALTH;
+                    this.stateTimer = 0;
+                    this.lungeDirX = 0;
+                    this.lungeDirY = 0;
+                    this.hasHitThisLunge = false;
+                    this.player = player;
+                    this.displayName = name;
+                    const body = scene.add.polygon(0, 0, [
+                        0, -46,
+                        34, -18,
+                        30, 30,
+                        0, 46,
+                        -30, 30,
+                        -34, -18
+                    ], 0x2c1320).setStrokeStyle(3, 0x0c0508);
+                    const hornLeft = scene.add.triangle(0, 0, -22, -36, -34, -70, -8, -42, 0x120609);
+                    const hornRight = scene.add.triangle(0, 0, 22, -36, 34, -70, 8, -42, 0x120609);
+                    this.eye = scene.add.ellipse(0, -8, 20, 10, 0xff2d2d);
+                    this.add([body, hornLeft, hornRight, this.eye]);
+                    this.fsm = new engine_5.StateMachine(this, Boss.States, 'chase');
+                }
+                get Name() {
+                    return this.displayName;
+                }
+                get Health() {
+                    return this.health;
+                }
+                get MaxHealth() {
+                    return MAX_HEALTH;
+                }
+                get IsDead() {
+                    return this.fsm.Current === 'dead';
+                }
+                update(deltaMs, originX, originY) {
+                    if (!this.IsDead) {
+                        this.checkPlayerAttack();
+                    }
+                    this.fsm.update(deltaMs);
+                    this.syncScreenPosition(originX, originY);
+                }
+                checkPlayerAttack() {
+                    if (!this.player.IsAttackActive) {
+                        return;
+                    }
+                    const dist = Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+                    if (dist <= this.player.AttackRange && this.player.ConsumeAttackHit()) {
+                        this.takeDamage(1);
+                    }
+                }
+                takeDamage(amount) {
+                    this.health = Math.max(0, this.health - amount);
+                    if (this.health <= 0) {
+                        this.fsm.transition('dead');
+                    }
+                }
+                updateChase(deltaMs) {
+                    const dt = deltaMs / 1000;
+                    const dx = this.player.WorldX - this.worldX;
+                    const dy = this.player.WorldY - this.worldY;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist <= 0.001) {
+                        return;
+                    }
+                    const dirX = dx / dist;
+                    const dirY = dy / dist;
+                    this.setScale(dirX < 0 ? -1 : 1, 1);
+                    if (dist > ATTACK_RANGE) {
+                        const moved = this.clampToArena(this.worldX + dirX * CHASE_SPEED * dt, this.worldY + dirY * CHASE_SPEED * dt);
+                        this.worldX = moved.x;
+                        this.worldY = moved.y;
+                    }
+                    else {
+                        this.stateTimer = TELEGRAPH_DURATION;
+                        return 'telegraph';
+                    }
+                }
+                updateTelegraph(deltaMs) {
+                    this.eye.setFillStyle(this.stateTimer % 200 < 100 ? 0xffffff : 0xff2d2d);
+                    this.stateTimer -= deltaMs;
+                    if (this.stateTimer > 0) {
+                        return;
+                    }
+                    const dx = this.player.WorldX - this.worldX;
+                    const dy = this.player.WorldY - this.worldY;
+                    const dist = Math.hypot(dx, dy) || 1;
+                    this.lungeDirX = dx / dist;
+                    this.lungeDirY = dy / dist;
+                    this.stateTimer = LUNGE_DURATION;
+                    return 'lunge';
+                }
+                updateLunge(deltaMs) {
+                    const dt = deltaMs / 1000;
+                    const moved = this.clampToArena(this.worldX + this.lungeDirX * LUNGE_SPEED * dt, this.worldY + this.lungeDirY * LUNGE_SPEED * dt);
+                    this.worldX = moved.x;
+                    this.worldY = moved.y;
+                    if (!this.hasHitThisLunge) {
+                        const hitDist = Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+                        if (hitDist <= HIT_RADIUS) {
+                            this.hasHitThisLunge = true;
+                            this.player.TakeDamage(this.worldX, this.worldY);
+                        }
+                    }
+                    this.stateTimer -= deltaMs;
+                    if (this.stateTimer <= 0) {
+                        return 'recover';
+                    }
+                }
+                updateRecover(deltaMs) {
+                    this.stateTimer -= deltaMs;
+                    if (this.stateTimer <= 0) {
+                        return 'chase';
+                    }
+                }
+            };
+            exports_15("Boss", Boss);
+            Boss.States = {
+                chase: {
+                    onEnter: boss => {
+                        boss.alpha = 1;
+                        boss.eye.setFillStyle(0xff2d2d);
+                    },
+                    onUpdate: (boss, deltaMs) => boss.updateChase(deltaMs)
+                },
+                telegraph: {
+                    onUpdate: (boss, deltaMs) => boss.updateTelegraph(deltaMs)
+                },
+                lunge: {
+                    onEnter: boss => {
+                        boss.hasHitThisLunge = false;
+                    },
+                    onUpdate: (boss, deltaMs) => boss.updateLunge(deltaMs)
+                },
+                recover: {
+                    onEnter: boss => {
+                        boss.alpha = 0.7;
+                        boss.eye.setFillStyle(0x662222);
+                        boss.stateTimer = RECOVER_DURATION;
+                    },
+                    onUpdate: (boss, deltaMs) => boss.updateRecover(deltaMs)
+                },
+                dead: {
+                    onEnter: boss => {
+                        boss.alpha = 0.35;
+                        boss.eye.setFillStyle(0x000000);
+                    }
+                }
+            };
+        }
+    };
+});
+System.register("apps/soulslike/src/entities/Mob", ["packages/engine/src/index", "apps/soulslike/src/entities/IsoEntity"], function (exports_16, context_16) {
+    "use strict";
+    var engine_6, IsoEntity_4, PATROL_SPEED, CHASE_SPEED, PATROL_DISTANCE, ARRIVE_THRESHOLD, AGGRO_RANGE, DEAGGRO_RANGE, ATTACK_RANGE, ATTACK_COOLDOWN, Mob;
+    var __moduleName = context_16 && context_16.id;
+    return {
+        setters: [
+            function (engine_6_1) {
+                engine_6 = engine_6_1;
+            },
+            function (IsoEntity_4_1) {
+                IsoEntity_4 = IsoEntity_4_1;
+            }
+        ],
+        execute: function () {
+            PATROL_SPEED = 0.7; // world units/sec
+            CHASE_SPEED = 1.1; // world units/sec, slower than the boss's chase
+            PATROL_DISTANCE = 1.4; // world units from spawn point
+            ARRIVE_THRESHOLD = 0.05; // world units
+            AGGRO_RANGE = 2.5; // world units, starts the chase
+            DEAGGRO_RANGE = 3.6; // world units, larger than AGGRO_RANGE to avoid state flicker at the boundary
+            ATTACK_RANGE = 0.7; // world units, contact range
+            ATTACK_COOLDOWN = 900; // ms between contact hits
+            /**
+             * Weak, simple hostile: paces between its spawn point and a short offset
+             * until the player wanders within AGGRO_RANGE, then closes in and deals
+             * contact damage on a cooldown — no telegraph/lunge theater like the Boss,
+             * just a fast weak nuisance you're expected to shrug off or dodge.
+             */
+            Mob = class Mob extends IsoEntity_4.IsoEntity {
+                constructor(scene, worldX, worldY, arenaExtent, player) {
+                    super(scene, worldX, worldY, arenaExtent);
+                    this.attackCooldown = 0;
+                    this.player = player;
+                    this.spawnX = worldX;
+                    this.spawnY = worldY;
+                    this.offsetX = worldX + PATROL_DISTANCE;
+                    this.offsetY = worldY;
+                    const body = scene.add.circle(0, 0, 16, 0x1f2417).setStrokeStyle(2, 0x0c0d08);
+                    const spike = scene.add.triangle(0, 0, 0, -20, -6, -6, 6, -6, 0x0c0d08);
+                    this.add([body, spike]);
+                    this.fsm = new engine_6.StateMachine(this, Mob.States, 'toOffset');
+                }
+                update(deltaMs, originX, originY) {
+                    if (this.attackCooldown > 0) {
+                        this.attackCooldown = Math.max(0, this.attackCooldown - deltaMs);
+                    }
+                    this.fsm.update(deltaMs);
+                    this.syncScreenPosition(originX, originY);
+                }
+                distanceToPlayer() {
+                    return Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+                }
+                checkAggro() {
+                    if (this.distanceToPlayer() <= AGGRO_RANGE) {
+                        return 'chase';
+                    }
+                }
+                updateChase(deltaMs) {
+                    const dist = this.distanceToPlayer();
+                    if (dist > DEAGGRO_RANGE) {
+                        return 'toSpawn';
+                    }
+                    if (dist > ATTACK_RANGE) {
+                        const dt = deltaMs / 1000;
+                        const dirX = (this.player.WorldX - this.worldX) / dist;
+                        const dirY = (this.player.WorldY - this.worldY) / dist;
+                        const moved = this.clampToArena(this.worldX + dirX * CHASE_SPEED * dt, this.worldY + dirY * CHASE_SPEED * dt);
+                        this.worldX = moved.x;
+                        this.worldY = moved.y;
+                        this.setScale(dirX < 0 ? -1 : 1, 1);
+                    }
+                    else if (this.attackCooldown <= 0) {
+                        this.attackCooldown = ATTACK_COOLDOWN;
+                        this.player.TakeDamage(this.worldX, this.worldY);
+                    }
+                }
+                moveToward(targetX, targetY, deltaMs, nextState) {
+                    const dt = deltaMs / 1000;
+                    const dx = targetX - this.worldX;
+                    const dy = targetY - this.worldY;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist <= ARRIVE_THRESHOLD) {
+                        return nextState;
+                    }
+                    const dirX = dx / dist;
+                    const dirY = dy / dist;
+                    const step = Math.min(PATROL_SPEED * dt, dist);
+                    const moved = this.clampToArena(this.worldX + dirX * step, this.worldY + dirY * step);
+                    this.worldX = moved.x;
+                    this.worldY = moved.y;
+                    this.setScale(dirX < 0 ? -1 : 1, 1);
+                }
+            };
+            exports_16("Mob", Mob);
+            Mob.States = {
+                toOffset: {
+                    onUpdate: (mob, deltaMs) => { var _a; return (_a = mob.checkAggro()) !== null && _a !== void 0 ? _a : mob.moveToward(mob.offsetX, mob.offsetY, deltaMs, 'toSpawn'); }
+                },
+                toSpawn: {
+                    onUpdate: (mob, deltaMs) => { var _a; return (_a = mob.checkAggro()) !== null && _a !== void 0 ? _a : mob.moveToward(mob.spawnX, mob.spawnY, deltaMs, 'toOffset'); }
+                },
+                chase: {
+                    onUpdate: (mob, deltaMs) => mob.updateChase(deltaMs)
+                }
+            };
+        }
+    };
+});
+System.register("apps/soulslike/src/entities/SentinelBoss", ["packages/engine/src/index", "apps/soulslike/src/entities/IsoEntity"], function (exports_17, context_17) {
+    "use strict";
+    var engine_7, IsoEntity_5, MAX_HEALTH, WINDUP_DURATION, RELEASE_DURATION, RECOVER_DURATION, SHOCKWAVE_RADIUS, SentinelBoss;
     var __moduleName = context_17 && context_17.id;
+    return {
+        setters: [
+            function (engine_7_1) {
+                engine_7 = engine_7_1;
+            },
+            function (IsoEntity_5_1) {
+                IsoEntity_5 = IsoEntity_5_1;
+            }
+        ],
+        execute: function () {
+            MAX_HEALTH = 5;
+            WINDUP_DURATION = 1200; // ms, warning ring grows before the shockwave fires
+            RELEASE_DURATION = 150; // ms, the shockwave's brief active frame
+            RECOVER_DURATION = 900; // ms, dimmed and harmless
+            SHOCKWAVE_RADIUS = 2.6; // world units, damages the player if caught inside on release
+            /**
+             * A stationary boss archetype, deliberately different from Boss's chase/
+             * lunge: it never moves. It telegraphs a growing warning ring, then damages
+             * the player if they're still within SHOCKWAVE_RADIUS when it releases.
+             * Rewards positioning (get out of the ring before it fires) rather than
+             * dodge-timing.
+             */
+            SentinelBoss = class SentinelBoss extends IsoEntity_5.IsoEntity {
+                constructor(scene, worldX, worldY, arenaExtent, player, name) {
+                    super(scene, worldX, worldY, arenaExtent);
+                    this.health = MAX_HEALTH;
+                    this.stateTimer = 0;
+                    this.player = player;
+                    this.displayName = name;
+                    const body = scene.add.polygon(0, 0, [
+                        0, -50,
+                        26, -20,
+                        18, 34,
+                        -18, 34,
+                        -26, -20
+                    ], 0x152230).setStrokeStyle(3, 0x0a121a);
+                    this.warningRing = scene.add.ellipse(0, 10, 90, 45, 0x7fd6ff, 0.2).setScale(0.1);
+                    this.core = scene.add.ellipse(0, -14, 18, 18, 0x7fd6ff);
+                    this.add([body, this.warningRing, this.core]);
+                    this.fsm = new engine_7.StateMachine(this, SentinelBoss.States, 'windup');
+                }
+                get Name() {
+                    return this.displayName;
+                }
+                get Health() {
+                    return this.health;
+                }
+                get MaxHealth() {
+                    return MAX_HEALTH;
+                }
+                get IsDead() {
+                    return this.fsm.Current === 'dead';
+                }
+                update(deltaMs, originX, originY) {
+                    if (!this.IsDead) {
+                        this.checkPlayerAttack();
+                    }
+                    this.fsm.update(deltaMs);
+                    this.syncScreenPosition(originX, originY);
+                }
+                checkPlayerAttack() {
+                    if (!this.player.IsAttackActive) {
+                        return;
+                    }
+                    const dist = Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+                    if (dist <= this.player.AttackRange && this.player.ConsumeAttackHit()) {
+                        this.takeDamage(1);
+                    }
+                }
+                takeDamage(amount) {
+                    this.health = Math.max(0, this.health - amount);
+                    if (this.health <= 0) {
+                        this.fsm.transition('dead');
+                    }
+                }
+                dealDamageIfInRange() {
+                    const dist = Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+                    if (dist <= SHOCKWAVE_RADIUS) {
+                        this.player.TakeDamage(this.worldX, this.worldY);
+                    }
+                }
+                updateWindup(deltaMs) {
+                    this.stateTimer -= deltaMs;
+                    const progress = 1 - Math.max(0, this.stateTimer) / WINDUP_DURATION;
+                    this.warningRing.setScale(0.1 + progress * 0.9).setAlpha(0.15 + progress * 0.45);
+                    this.core.setFillStyle(this.stateTimer % 200 < 100 ? 0xffffff : 0x7fd6ff);
+                    if (this.stateTimer <= 0) {
+                        return 'release';
+                    }
+                }
+                updateRelease(deltaMs) {
+                    this.stateTimer -= deltaMs;
+                    if (this.stateTimer <= 0) {
+                        return 'recover';
+                    }
+                }
+                updateRecover(deltaMs) {
+                    this.stateTimer -= deltaMs;
+                    if (this.stateTimer <= 0) {
+                        return 'windup';
+                    }
+                }
+            };
+            exports_17("SentinelBoss", SentinelBoss);
+            SentinelBoss.States = {
+                windup: {
+                    onEnter: boss => {
+                        boss.stateTimer = WINDUP_DURATION;
+                        boss.alpha = 1;
+                        boss.warningRing.setScale(0.1).setAlpha(0.15);
+                    },
+                    onUpdate: (boss, deltaMs) => boss.updateWindup(deltaMs)
+                },
+                release: {
+                    onEnter: boss => {
+                        boss.stateTimer = RELEASE_DURATION;
+                        boss.core.setFillStyle(0xffffff);
+                        boss.warningRing.setScale(1).setAlpha(0.6);
+                        boss.dealDamageIfInRange();
+                    },
+                    onUpdate: (boss, deltaMs) => boss.updateRelease(deltaMs)
+                },
+                recover: {
+                    onEnter: boss => {
+                        boss.stateTimer = RECOVER_DURATION;
+                        boss.alpha = 0.7;
+                        boss.core.setFillStyle(0x35505c);
+                        boss.warningRing.setAlpha(0);
+                    },
+                    onUpdate: (boss, deltaMs) => boss.updateRecover(deltaMs)
+                },
+                dead: {
+                    onEnter: boss => {
+                        boss.alpha = 0.35;
+                        boss.core.setFillStyle(0x000000);
+                        boss.warningRing.setAlpha(0);
+                    }
+                }
+            };
+        }
+    };
+});
+System.register("apps/soulslike/src/content/CreatureScripts", ["apps/soulslike/src/entities/Boss", "apps/soulslike/src/entities/Mob", "apps/soulslike/src/entities/SentinelBoss", "apps/soulslike/src/content/GameContent"], function (exports_18, context_18) {
+    "use strict";
+    var Boss_1, Mob_1, SentinelBoss_1, GameContent_2;
+    var __moduleName = context_18 && context_18.id;
     /**
      * Matches each creature_template.scriptName to the class that brings it to
      * life. Adding a new creature is: a template row, a spawn row, and one
      * registration here — no scene/loader changes.
      */
     function registerCreatureScripts() {
-        GameContent_2.creatureScripts.register('boss_hollowed_warden', (scene, spawn, arenaExtent, player, template) => new Boss_2.Boss(scene, spawn.worldX, spawn.worldY, arenaExtent, player, template.name));
+        GameContent_2.creatureScripts.register('boss_hollowed_warden', (scene, spawn, arenaExtent, player, template) => new Boss_1.Boss(scene, spawn.worldX, spawn.worldY, arenaExtent, player, template.name));
         GameContent_2.creatureScripts.register('mob_patrol_wretch', (scene, spawn, arenaExtent, player) => new Mob_1.Mob(scene, spawn.worldX, spawn.worldY, arenaExtent, player));
+        GameContent_2.creatureScripts.register('boss_ashen_sentinel', (scene, spawn, arenaExtent, player, template) => new SentinelBoss_1.SentinelBoss(scene, spawn.worldX, spawn.worldY, arenaExtent, player, template.name));
     }
-    exports_17("registerCreatureScripts", registerCreatureScripts);
+    exports_18("registerCreatureScripts", registerCreatureScripts);
     return {
         setters: [
-            function (Boss_2_1) {
-                Boss_2 = Boss_2_1;
+            function (Boss_1_1) {
+                Boss_1 = Boss_1_1;
             },
             function (Mob_1_1) {
                 Mob_1 = Mob_1_1;
+            },
+            function (SentinelBoss_1_1) {
+                SentinelBoss_1 = SentinelBoss_1_1;
             },
             function (GameContent_2_1) {
                 GameContent_2 = GameContent_2_1;
@@ -1181,10 +1328,10 @@ System.register("apps/soulslike/src/content/CreatureScripts", ["apps/soulslike/s
     };
 });
 /// <reference path="./../../../node_modules/phaser/types/phaser.d.ts"/>
-System.register("apps/soulslike/src/main", ["apps/soulslike/src/scenes/ArenaScene", "apps/soulslike/src/content/GameContent", "apps/soulslike/src/content/CreatureScripts"], function (exports_18, context_18) {
+System.register("apps/soulslike/src/main", ["apps/soulslike/src/scenes/ArenaScene", "apps/soulslike/src/content/GameContent", "apps/soulslike/src/content/CreatureScripts"], function (exports_19, context_19) {
     "use strict";
     var ArenaScene_1, GameContent_3, CreatureScripts_1, config;
-    var __moduleName = context_18 && context_18.id;
+    var __moduleName = context_19 && context_19.id;
     return {
         setters: [
             function (ArenaScene_1_1) {

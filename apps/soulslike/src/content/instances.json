@@ -13,5 +13,10 @@
         "id": "dungeon_crimson_keep_sanctum",
         "name": "Crimson Keep - Sanctum",
         "arenaExtent": 6.3
+    },
+    {
+        "id": "sentinel_spire",
+        "name": "The Sentinel Spire",
+        "arenaExtent": 6.3
     }
 ]

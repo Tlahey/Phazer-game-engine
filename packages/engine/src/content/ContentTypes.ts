@@ -9,6 +9,8 @@ export interface CreatureTemplate {
     name: string;
     /** Matched against a ScriptRegistry key to resolve the concrete AI/visual class. */
     scriptName: string;
+    /** Drives HUD/encounter treatment (health bar, victory text) without the caller needing to know the concrete class. */
+    isBoss: boolean;
 }
 
 export interface CreatureSpawn {

@@ -19,5 +19,12 @@
         "instanceId": "dungeon_crimson_keep",
         "worldX": -2,
         "worldY": -2
+    },
+    {
+        "guid": 4,
+        "entry": 3,
+        "instanceId": "sentinel_spire",
+        "worldX": 0,
+        "worldY": -3
     }
 ]

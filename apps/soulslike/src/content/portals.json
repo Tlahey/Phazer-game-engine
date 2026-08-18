@@ -30,5 +30,21 @@
         "targetInstanceId": "world_hub",
         "targetWorldX": 3,
         "targetWorldY": -1.5
+    },
+    {
+        "instanceId": "world_hub",
+        "worldX": -3,
+        "worldY": 3,
+        "targetInstanceId": "sentinel_spire",
+        "targetWorldX": 0,
+        "targetWorldY": 0.8
+    },
+    {
+        "instanceId": "sentinel_spire",
+        "worldX": 0,
+        "worldY": 2,
+        "targetInstanceId": "world_hub",
+        "targetWorldX": -3,
+        "targetWorldY": 1.5
     }
 ]
