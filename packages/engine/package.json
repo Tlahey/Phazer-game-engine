@@ -1,0 +1,8 @@
+{
+  "name": "@phazer/engine",
+  "description": "Generic, game-agnostic building blocks (state machine, isometric math, utilities) shared across Phazer apps.",
+  "version": "1.0.0",
+  "private": true,
+  "types": "src/index.ts",
+  "main": "src/index.ts"
+}

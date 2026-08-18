@@ -1,0 +1,11 @@
+{
+  "name": "@phazer/soulslike",
+  "description": "Isometric Souls-like boss-rush game, built on Phaser 3 and @phazer/engine.",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@phazer/engine": "*",
+    "phaser": "^3.90.0",
+    "systemjs": "0.19.40"
+  }
+}

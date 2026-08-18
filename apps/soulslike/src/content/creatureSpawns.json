@@ -1,0 +1,23 @@
+[
+    {
+        "guid": 1,
+        "entry": 1,
+        "instanceId": "dungeon_crimson_keep",
+        "worldX": 0,
+        "worldY": -4
+    },
+    {
+        "guid": 2,
+        "entry": 2,
+        "instanceId": "dungeon_crimson_keep",
+        "worldX": 2,
+        "worldY": -2
+    },
+    {
+        "guid": 3,
+        "entry": 2,
+        "instanceId": "dungeon_crimson_keep",
+        "worldX": -2,
+        "worldY": -2
+    }
+]

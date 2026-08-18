@@ -3,6 +3,7 @@ export interface PlayerInputState {
     screenDirX: number;
     screenDirY: number;
     dodgePressed: boolean;
+    attackPressed: boolean;
 }
 
 /**
@@ -22,6 +23,8 @@ export class PlayerInput {
     private rightArrow: Phaser.Input.Keyboard.Key;
     private dodgeKey: Phaser.Input.Keyboard.Key;
     private dodgeKeyAlt: Phaser.Input.Keyboard.Key;
+    private attackKey: Phaser.Input.Keyboard.Key;
+    private attackKeyAlt: Phaser.Input.Keyboard.Key;
 
     constructor(keyboard: Phaser.Input.Keyboard.KeyboardPlugin) {
         const KC = Phaser.Input.Keyboard.KeyCodes;
@@ -35,6 +38,8 @@ export class PlayerInput {
         this.rightArrow = keyboard.addKey(KC.RIGHT);
         this.dodgeKey = keyboard.addKey(KC.SPACE);
         this.dodgeKeyAlt = keyboard.addKey(KC.SHIFT);
+        this.attackKey = keyboard.addKey(KC.J);
+        this.attackKeyAlt = keyboard.addKey(KC.ENTER);
     }
 
     public poll(): PlayerInputState {
@@ -56,6 +61,10 @@ export class PlayerInput {
             Phaser.Input.Keyboard.JustDown(this.dodgeKey) ||
             Phaser.Input.Keyboard.JustDown(this.dodgeKeyAlt);
 
-        return { screenDirX, screenDirY, dodgePressed };
+        const attackPressed =
+            Phaser.Input.Keyboard.JustDown(this.attackKey) ||
+            Phaser.Input.Keyboard.JustDown(this.attackKeyAlt);
+
+        return { screenDirX, screenDirY, dodgePressed, attackPressed };
     }
 }

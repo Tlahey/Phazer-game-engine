@@ -1,0 +1,12 @@
+[
+    {
+        "id": "world_hub",
+        "name": "The Wayrest",
+        "arenaExtent": 6.3
+    },
+    {
+        "id": "dungeon_crimson_keep",
+        "name": "Crimson Keep",
+        "arenaExtent": 6.3
+    }
+]

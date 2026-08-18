@@ -1,0 +1,12 @@
+[
+    {
+        "entry": 1,
+        "name": "The Hollowed Warden",
+        "scriptName": "boss_hollowed_warden"
+    },
+    {
+        "entry": 2,
+        "name": "Wretched Skitterling",
+        "scriptName": "mob_patrol_wretch"
+    }
+]
