@@ -776,7 +776,7 @@ System.register("apps/soulslike/src/entities/Boss", ["packages/engine/src/index"
 });
 System.register("apps/soulslike/src/entities/Mob", ["packages/engine/src/index", "apps/soulslike/src/entities/IsoEntity"], function (exports_13, context_13) {
     "use strict";
-    var engine_4, IsoEntity_3, PATROL_SPEED, PATROL_DISTANCE, ARRIVE_THRESHOLD, Mob;
+    var engine_4, IsoEntity_3, PATROL_SPEED, CHASE_SPEED, PATROL_DISTANCE, ARRIVE_THRESHOLD, AGGRO_RANGE, DEAGGRO_RANGE, ATTACK_RANGE, ATTACK_COOLDOWN, Mob;
     var __moduleName = context_13 && context_13.id;
     return {
         setters: [
@@ -789,16 +789,24 @@ System.register("apps/soulslike/src/entities/Mob", ["packages/engine/src/index",
         ],
         execute: function () {
             PATROL_SPEED = 0.7; // world units/sec
+            CHASE_SPEED = 1.1; // world units/sec, slower than the boss's chase
             PATROL_DISTANCE = 1.4; // world units from spawn point
             ARRIVE_THRESHOLD = 0.05; // world units
+            AGGRO_RANGE = 2.5; // world units, starts the chase
+            DEAGGRO_RANGE = 3.6; // world units, larger than AGGRO_RANGE to avoid state flicker at the boundary
+            ATTACK_RANGE = 0.7; // world units, contact range
+            ATTACK_COOLDOWN = 900; // ms between contact hits
             /**
-             * Minimal demo creature: no attack, just paces back and forth between its
-             * spawn point and a short offset. Exists to prove the content/registry
-             * system handles more than one creature script side by side with the Boss.
+             * Weak, simple hostile: paces between its spawn point and a short offset
+             * until the player wanders within AGGRO_RANGE, then closes in and deals
+             * contact damage on a cooldown — no telegraph/lunge theater like the Boss,
+             * just a fast weak nuisance you're expected to shrug off or dodge.
              */
             Mob = class Mob extends IsoEntity_3.IsoEntity {
-                constructor(scene, worldX, worldY, arenaExtent) {
+                constructor(scene, worldX, worldY, arenaExtent, player) {
                     super(scene, worldX, worldY, arenaExtent);
+                    this.attackCooldown = 0;
+                    this.player = player;
                     this.spawnX = worldX;
                     this.spawnY = worldY;
                     this.offsetX = worldX + PATROL_DISTANCE;
@@ -809,8 +817,38 @@ System.register("apps/soulslike/src/entities/Mob", ["packages/engine/src/index",
                     this.fsm = new engine_4.StateMachine(this, Mob.States, 'toOffset');
                 }
                 update(deltaMs, originX, originY) {
+                    if (this.attackCooldown > 0) {
+                        this.attackCooldown = Math.max(0, this.attackCooldown - deltaMs);
+                    }
                     this.fsm.update(deltaMs);
                     this.syncScreenPosition(originX, originY);
+                }
+                distanceToPlayer() {
+                    return Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+                }
+                checkAggro() {
+                    if (this.distanceToPlayer() <= AGGRO_RANGE) {
+                        return 'chase';
+                    }
+                }
+                updateChase(deltaMs) {
+                    const dist = this.distanceToPlayer();
+                    if (dist > DEAGGRO_RANGE) {
+                        return 'toSpawn';
+                    }
+                    if (dist > ATTACK_RANGE) {
+                        const dt = deltaMs / 1000;
+                        const dirX = (this.player.WorldX - this.worldX) / dist;
+                        const dirY = (this.player.WorldY - this.worldY) / dist;
+                        const moved = this.clampToArena(this.worldX + dirX * CHASE_SPEED * dt, this.worldY + dirY * CHASE_SPEED * dt);
+                        this.worldX = moved.x;
+                        this.worldY = moved.y;
+                        this.setScale(dirX < 0 ? -1 : 1, 1);
+                    }
+                    else if (this.attackCooldown <= 0) {
+                        this.attackCooldown = ATTACK_COOLDOWN;
+                        this.player.TakeDamage(this.worldX, this.worldY);
+                    }
                 }
                 moveToward(targetX, targetY, deltaMs, nextState) {
                     const dt = deltaMs / 1000;
@@ -832,10 +870,13 @@ System.register("apps/soulslike/src/entities/Mob", ["packages/engine/src/index",
             exports_13("Mob", Mob);
             Mob.States = {
                 toOffset: {
-                    onUpdate: (mob, deltaMs) => mob.moveToward(mob.offsetX, mob.offsetY, deltaMs, 'toSpawn')
+                    onUpdate: (mob, deltaMs) => { var _a; return (_a = mob.checkAggro()) !== null && _a !== void 0 ? _a : mob.moveToward(mob.offsetX, mob.offsetY, deltaMs, 'toSpawn'); }
                 },
                 toSpawn: {
-                    onUpdate: (mob, deltaMs) => mob.moveToward(mob.spawnX, mob.spawnY, deltaMs, 'toOffset')
+                    onUpdate: (mob, deltaMs) => { var _a; return (_a = mob.checkAggro()) !== null && _a !== void 0 ? _a : mob.moveToward(mob.spawnX, mob.spawnY, deltaMs, 'toOffset'); }
+                },
+                chase: {
+                    onUpdate: (mob, deltaMs) => mob.updateChase(deltaMs)
                 }
             };
         }
@@ -1120,7 +1161,7 @@ System.register("apps/soulslike/src/content/CreatureScripts", ["apps/soulslike/s
      */
     function registerCreatureScripts() {
         GameContent_2.creatureScripts.register('boss_hollowed_warden', (scene, spawn, arenaExtent, player, template) => new Boss_2.Boss(scene, spawn.worldX, spawn.worldY, arenaExtent, player, template.name));
-        GameContent_2.creatureScripts.register('mob_patrol_wretch', (scene, spawn, arenaExtent) => new Mob_1.Mob(scene, spawn.worldX, spawn.worldY, arenaExtent));
+        GameContent_2.creatureScripts.register('mob_patrol_wretch', (scene, spawn, arenaExtent, player) => new Mob_1.Mob(scene, spawn.worldX, spawn.worldY, arenaExtent, player));
     }
     exports_17("registerCreatureScripts", registerCreatureScripts);
     return {

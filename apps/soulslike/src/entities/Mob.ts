@@ -1,27 +1,38 @@
 import { StateMachine, StateDefinition } from '@phazer/engine';
+import { Player } from './Player';
 import { IsoEntity } from './IsoEntity';
 
 const PATROL_SPEED = 0.7;      // world units/sec
+const CHASE_SPEED = 1.1;       // world units/sec, slower than the boss's chase
 const PATROL_DISTANCE = 1.4;   // world units from spawn point
 const ARRIVE_THRESHOLD = 0.05; // world units
 
-type MobStateName = 'toOffset' | 'toSpawn';
+const AGGRO_RANGE = 2.5;    // world units, starts the chase
+const DEAGGRO_RANGE = 3.6;  // world units, larger than AGGRO_RANGE to avoid state flicker at the boundary
+const ATTACK_RANGE = 0.7;   // world units, contact range
+const ATTACK_COOLDOWN = 900; // ms between contact hits
+
+type MobStateName = 'toOffset' | 'toSpawn' | 'chase';
 
 /**
- * Minimal demo creature: no attack, just paces back and forth between its
- * spawn point and a short offset. Exists to prove the content/registry
- * system handles more than one creature script side by side with the Boss.
+ * Weak, simple hostile: paces between its spawn point and a short offset
+ * until the player wanders within AGGRO_RANGE, then closes in and deals
+ * contact damage on a cooldown — no telegraph/lunge theater like the Boss,
+ * just a fast weak nuisance you're expected to shrug off or dodge.
  */
 export class Mob extends IsoEntity {
 
+    private player: Player;
     private fsm: StateMachine<Mob, MobStateName>;
     private readonly spawnX: number;
     private readonly spawnY: number;
     private readonly offsetX: number;
     private readonly offsetY: number;
+    private attackCooldown = 0;
 
-    constructor(scene: Phaser.Scene, worldX: number, worldY: number, arenaExtent: number) {
+    constructor(scene: Phaser.Scene, worldX: number, worldY: number, arenaExtent: number, player: Player) {
         super(scene, worldX, worldY, arenaExtent);
+        this.player = player;
         this.spawnX = worldX;
         this.spawnY = worldY;
         this.offsetX = worldX + PATROL_DISTANCE;
@@ -37,16 +48,53 @@ export class Mob extends IsoEntity {
 
     private static readonly States: Record<MobStateName, StateDefinition<Mob, MobStateName>> = {
         toOffset: {
-            onUpdate: (mob, deltaMs) => mob.moveToward(mob.offsetX, mob.offsetY, deltaMs, 'toSpawn')
+            onUpdate: (mob, deltaMs) => mob.checkAggro() ?? mob.moveToward(mob.offsetX, mob.offsetY, deltaMs, 'toSpawn')
         },
         toSpawn: {
-            onUpdate: (mob, deltaMs) => mob.moveToward(mob.spawnX, mob.spawnY, deltaMs, 'toOffset')
+            onUpdate: (mob, deltaMs) => mob.checkAggro() ?? mob.moveToward(mob.spawnX, mob.spawnY, deltaMs, 'toOffset')
+        },
+        chase: {
+            onUpdate: (mob, deltaMs) => mob.updateChase(deltaMs)
         }
     };
 
     public update(deltaMs: number, originX: number, originY: number): void {
+        if (this.attackCooldown > 0) {
+            this.attackCooldown = Math.max(0, this.attackCooldown - deltaMs);
+        }
+
         this.fsm.update(deltaMs);
         this.syncScreenPosition(originX, originY);
+    }
+
+    private distanceToPlayer(): number {
+        return Math.hypot(this.player.WorldX - this.worldX, this.player.WorldY - this.worldY);
+    }
+
+    private checkAggro(): MobStateName | void {
+        if (this.distanceToPlayer() <= AGGRO_RANGE) {
+            return 'chase';
+        }
+    }
+
+    private updateChase(deltaMs: number): MobStateName | void {
+        const dist = this.distanceToPlayer();
+        if (dist > DEAGGRO_RANGE) {
+            return 'toSpawn';
+        }
+
+        if (dist > ATTACK_RANGE) {
+            const dt = deltaMs / 1000;
+            const dirX = (this.player.WorldX - this.worldX) / dist;
+            const dirY = (this.player.WorldY - this.worldY) / dist;
+            const moved = this.clampToArena(this.worldX + dirX * CHASE_SPEED * dt, this.worldY + dirY * CHASE_SPEED * dt);
+            this.worldX = moved.x;
+            this.worldY = moved.y;
+            this.setScale(dirX < 0 ? -1 : 1, 1);
+        } else if (this.attackCooldown <= 0) {
+            this.attackCooldown = ATTACK_COOLDOWN;
+            this.player.TakeDamage(this.worldX, this.worldY);
+        }
     }
 
     private moveToward(targetX: number, targetY: number, deltaMs: number, nextState: MobStateName): MobStateName | void {

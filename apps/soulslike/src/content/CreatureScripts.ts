@@ -11,6 +11,6 @@ export function registerCreatureScripts(): void {
     creatureScripts.register('boss_hollowed_warden', (scene, spawn, arenaExtent, player, template) =>
         new Boss(scene, spawn.worldX, spawn.worldY, arenaExtent, player, template.name));
 
-    creatureScripts.register('mob_patrol_wretch', (scene, spawn, arenaExtent) =>
-        new Mob(scene, spawn.worldX, spawn.worldY, arenaExtent));
+    creatureScripts.register('mob_patrol_wretch', (scene, spawn, arenaExtent, player) =>
+        new Mob(scene, spawn.worldX, spawn.worldY, arenaExtent, player));
 }
