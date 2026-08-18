@@ -20,12 +20,12 @@ export class SimpleGame {
     preload() {
 
         // On charge l'ensemble des modèles
-        var spritesPath = "./src/Assets/Sprites/";
+        var spritesPath = "./legacy/Assets/Sprites/";
         DatabaseSingleton.getInstance().models_db.Values().forEach(model => {
             SimpleGame.game.load.image('model_' + model.Value.Id, spritesPath + model.Value.AssetName);
         });
 
-        var soundsPath = "./src/Assets/Sounds/";
+        var soundsPath = "./legacy/Assets/Sounds/";
         DatabaseSingleton.getInstance().sounds_db.Values().forEach(sound => {
             SimpleGame.game.load.audio('sound_' + sound.Value.Id, soundsPath + sound.Value.AssetName);
         });

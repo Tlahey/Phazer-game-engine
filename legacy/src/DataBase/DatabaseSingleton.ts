@@ -114,7 +114,7 @@ export class DatabaseSingleton {
         // CREATURE
         promises.push(new Promise<void>(resolve => {
             this.creatures_db = new Dictionary<ICreature_db>();
-            this.getDatabaseInformations("./src/Assets/Database/Creature.json", (result) => {
+            this.getDatabaseInformations("./legacy/Assets/Database/Creature.json", (result) => {
                 (JSON.parse(result.target.responseText) as ICreature_db[]).forEach((el) => {
                     this.creatures_db.Add(el.Entry.toString(), el);
                 });
@@ -125,7 +125,7 @@ export class DatabaseSingleton {
         // CREATURE TEMPLATE
         promises.push(new Promise<void>(resolve => {
             this.creaturesTemplate_db = new Dictionary<ICreatureTemplate_db>();
-            this.getDatabaseInformations("./src/Assets/Database/CreatureTemplate.json", (result) => {
+            this.getDatabaseInformations("./legacy/Assets/Database/CreatureTemplate.json", (result) => {
                 (JSON.parse(result.target.responseText) as ICreatureTemplate_db[]).forEach((el) => {
                     this.creaturesTemplate_db.Add(el.Entry.toString(), el);
                 });
@@ -136,7 +136,7 @@ export class DatabaseSingleton {
         // MODELS
         promises.push(new Promise<void>(resolve => {
             this.models_db = new Dictionary<IModel_db>();
-            this.getDatabaseInformations("./src/Assets/Database/Models.json", (result) => {
+            this.getDatabaseInformations("./legacy/Assets/Database/Models.json", (result) => {
                 (JSON.parse(result.target.responseText) as IModel_db[]).forEach((el) => {
                     this.models_db.Add(el.Id.toString(), el);
                 });
@@ -147,7 +147,7 @@ export class DatabaseSingleton {
         // SOUNDS
         promises.push(new Promise<void>(resolve => {
             this.sounds_db = new Dictionary<ISound_db>();
-            this.getDatabaseInformations("./src/Assets/Database/Sounds.json", (result) => {
+            this.getDatabaseInformations("./legacy/Assets/Database/Sounds.json", (result) => {
                 (JSON.parse(result.target.responseText) as ISound_db[]).forEach((el) => {
                     this.sounds_db.Add(el.Id.toString(), el);
                 });
@@ -158,7 +158,7 @@ export class DatabaseSingleton {
         // SPELLS 
         promises.push(new Promise<void>(resolve => {
             this.spells_db = new Dictionary<ISpell_db>();
-            this.getDatabaseInformations("./src/Assets/Database/Spells.json", (result) => {
+            this.getDatabaseInformations("./legacy/Assets/Database/Spells.json", (result) => {
                 (JSON.parse(result.target.responseText) as ISpell_db[]).forEach((el) => {
                     this.spells_db.Add(el.Id.toString(), el);
                 });
@@ -169,7 +169,7 @@ export class DatabaseSingleton {
         // TEXTS
         promises.push(new Promise<void>(resolve => {
             this.texts_db = new Dictionary<IText_db>();
-            this.getDatabaseInformations("./src/Assets/Database/Texts.json", (result) => {
+            this.getDatabaseInformations("./legacy/Assets/Database/Texts.json", (result) => {
                 (JSON.parse(result.target.responseText) as IText_db[]).forEach((el) => {
                     this.texts_db.Add(el.Id.toString(), el);
                 });

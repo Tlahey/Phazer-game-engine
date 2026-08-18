@@ -2,7 +2,8 @@
   "compilerOptions": {
     "target": "es6",
     "module": "system",
-    "moduleResolution": "Classic",
+    "moduleResolution": "Node10",
+    "rootDir": ".",
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -12,10 +13,11 @@
     "outFile": "./app.js"
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.ts"
   ],
   "include": [
-        "./src/*.ts",
-        "./src/**/*.ts"
+        "./packages/*/src/**/*.ts",
+        "./apps/*/src/**/*.ts"
   ]
 }

@@ -1,0 +1,30 @@
+[
+    {
+        "guid": 1,
+        "entry": 1,
+        "instanceId": "dungeon_crimson_keep_sanctum",
+        "worldX": 0,
+        "worldY": -4
+    },
+    {
+        "guid": 2,
+        "entry": 2,
+        "instanceId": "dungeon_crimson_keep",
+        "worldX": 2,
+        "worldY": -2
+    },
+    {
+        "guid": 3,
+        "entry": 2,
+        "instanceId": "dungeon_crimson_keep",
+        "worldX": -2,
+        "worldY": -2
+    },
+    {
+        "guid": 4,
+        "entry": 3,
+        "instanceId": "sentinel_spire",
+        "worldX": 0,
+        "worldY": -3
+    }
+]
