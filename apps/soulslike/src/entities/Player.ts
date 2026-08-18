@@ -76,8 +76,12 @@ export class Player extends IsoEntity {
         return MAX_HEALTH;
     }
 
+    public get IsDefeated(): boolean {
+        return this.health <= 0;
+    }
+
     public TakeDamage(sourceWorldX: number, sourceWorldY: number): void {
-        if (this.IsInvincible) {
+        if (this.IsInvincible || this.IsDefeated) {
             return;
         }
 
@@ -90,15 +94,15 @@ export class Player extends IsoEntity {
         const knockback = this.clampToArena(this.worldX + (dx / dist) * KNOCKBACK_DISTANCE, this.worldY + (dy / dist) * KNOCKBACK_DISTANCE);
         this.worldX = knockback.x;
         this.worldY = knockback.y;
-
-        if (this.health <= 0) {
-            this.health = MAX_HEALTH;
-            this.worldX = 0;
-            this.worldY = 0;
-        }
     }
 
     public update(deltaMs: number, input: PlayerInputState, originX: number, originY: number): void {
+        if (this.IsDefeated) {
+            this.alpha = 0.25;
+            this.syncScreenPosition(originX, originY);
+            return;
+        }
+
         const dt = deltaMs / 1000;
 
         if (this.dodgeCooldown > 0) {

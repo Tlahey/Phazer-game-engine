@@ -7,7 +7,7 @@ import { Portal } from './../entities/Portal';
 import { contentDatabase, creatureScripts } from './../content/GameContent';
 
 const PORTAL_TRIGGER_DISTANCE = 0.6; // world units
-const VICTORY_RETURN_DELAY = 2500;   // ms before auto-returning after a boss death
+const RESULT_RETURN_DELAY = 2500;    // ms before auto-returning after a boss/player death
 const BOSS_BAR_WIDTH = 240;
 
 interface ArenaSceneData {
@@ -113,6 +113,7 @@ export class ArenaScene extends Phaser.Scene {
         if (!this.hasTransitioned) {
             this.checkPortalTriggers();
             this.checkBossDefeated();
+            this.checkPlayerDefeated();
         }
     }
 
@@ -122,23 +123,36 @@ export class ArenaScene extends Phaser.Scene {
         }
 
         this.hasTransitioned = true;
-
-        this.add.text(this.originX, 140, `${this.activeBoss.Name} has fallen`, {
-            fontSize: '22px',
-            color: '#e8ddb5'
-        }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+        this.showResultMessage(`${this.activeBoss.Name} has fallen`, '#e8ddb5');
 
         const exitPortal = this.portals[0];
         if (!exitPortal) {
             return;
         }
 
-        this.time.delayedCall(VICTORY_RETURN_DELAY, () => {
-            this.scene.start('Arena', {
-                instanceId: exitPortal.targetInstanceId,
-                entryX: exitPortal.targetWorldX,
-                entryY: exitPortal.targetWorldY
-            });
+        this.scheduleReturn(exitPortal.targetInstanceId, exitPortal.targetWorldX, exitPortal.targetWorldY);
+    }
+
+    private checkPlayerDefeated(): void {
+        if (!this.player.IsDefeated) {
+            return;
+        }
+
+        this.hasTransitioned = true;
+        this.showResultMessage('You have fallen', '#c24b4b');
+        this.scheduleReturn('world_hub', 0, 0);
+    }
+
+    private showResultMessage(text: string, color: string): void {
+        this.add.text(this.originX, 140, text, {
+            fontSize: '22px',
+            color
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+    }
+
+    private scheduleReturn(instanceId: string, entryX: number, entryY: number): void {
+        this.time.delayedCall(RESULT_RETURN_DELAY, () => {
+            this.scene.start('Arena', { instanceId, entryX, entryY });
         });
     }
 

@@ -504,8 +504,11 @@ System.register("apps/soulslike/src/entities/Player", ["packages/engine/src/inde
                 get MaxHealth() {
                     return MAX_HEALTH;
                 }
+                get IsDefeated() {
+                    return this.health <= 0;
+                }
                 TakeDamage(sourceWorldX, sourceWorldY) {
-                    if (this.IsInvincible) {
+                    if (this.IsInvincible || this.IsDefeated) {
                         return;
                     }
                     this.health -= 1;
@@ -516,13 +519,13 @@ System.register("apps/soulslike/src/entities/Player", ["packages/engine/src/inde
                     const knockback = this.clampToArena(this.worldX + (dx / dist) * KNOCKBACK_DISTANCE, this.worldY + (dy / dist) * KNOCKBACK_DISTANCE);
                     this.worldX = knockback.x;
                     this.worldY = knockback.y;
-                    if (this.health <= 0) {
-                        this.health = MAX_HEALTH;
-                        this.worldX = 0;
-                        this.worldY = 0;
-                    }
                 }
                 update(deltaMs, input, originX, originY) {
+                    if (this.IsDefeated) {
+                        this.alpha = 0.25;
+                        this.syncScreenPosition(originX, originY);
+                        return;
+                    }
                     const dt = deltaMs / 1000;
                     if (this.dodgeCooldown > 0) {
                         this.dodgeCooldown = Math.max(0, this.dodgeCooldown - deltaMs);
@@ -892,7 +895,7 @@ System.register("apps/soulslike/src/content/GameContent", ["packages/engine/src/
 });
 System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/index", "apps/soulslike/src/input/PlayerInput", "apps/soulslike/src/entities/Player", "apps/soulslike/src/entities/Boss", "apps/soulslike/src/entities/Portal", "apps/soulslike/src/content/GameContent"], function (exports_16, context_16) {
     "use strict";
-    var engine_6, PlayerInput_1, Player_1, Boss_1, Portal_1, GameContent_1, PORTAL_TRIGGER_DISTANCE, VICTORY_RETURN_DELAY, BOSS_BAR_WIDTH, ArenaScene;
+    var engine_6, PlayerInput_1, Player_1, Boss_1, Portal_1, GameContent_1, PORTAL_TRIGGER_DISTANCE, RESULT_RETURN_DELAY, BOSS_BAR_WIDTH, ArenaScene;
     var __moduleName = context_16 && context_16.id;
     return {
         setters: [
@@ -917,7 +920,7 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
         ],
         execute: function () {
             PORTAL_TRIGGER_DISTANCE = 0.6; // world units
-            VICTORY_RETURN_DELAY = 2500; // ms before auto-returning after a boss death
+            RESULT_RETURN_DELAY = 2500; // ms before auto-returning after a boss/player death
             BOSS_BAR_WIDTH = 240;
             /**
              * Generic per-instance arena: builds its ground/entities entirely from
@@ -984,6 +987,7 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                     if (!this.hasTransitioned) {
                         this.checkPortalTriggers();
                         this.checkBossDefeated();
+                        this.checkPlayerDefeated();
                     }
                 }
                 checkBossDefeated() {
@@ -992,20 +996,30 @@ System.register("apps/soulslike/src/scenes/ArenaScene", ["packages/engine/src/in
                         return;
                     }
                     this.hasTransitioned = true;
-                    this.add.text(this.originX, 140, `${this.activeBoss.Name} has fallen`, {
-                        fontSize: '22px',
-                        color: '#e8ddb5'
-                    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+                    this.showResultMessage(`${this.activeBoss.Name} has fallen`, '#e8ddb5');
                     const exitPortal = this.portals[0];
                     if (!exitPortal) {
                         return;
                     }
-                    this.time.delayedCall(VICTORY_RETURN_DELAY, () => {
-                        this.scene.start('Arena', {
-                            instanceId: exitPortal.targetInstanceId,
-                            entryX: exitPortal.targetWorldX,
-                            entryY: exitPortal.targetWorldY
-                        });
+                    this.scheduleReturn(exitPortal.targetInstanceId, exitPortal.targetWorldX, exitPortal.targetWorldY);
+                }
+                checkPlayerDefeated() {
+                    if (!this.player.IsDefeated) {
+                        return;
+                    }
+                    this.hasTransitioned = true;
+                    this.showResultMessage('You have fallen', '#c24b4b');
+                    this.scheduleReturn('world_hub', 0, 0);
+                }
+                showResultMessage(text, color) {
+                    this.add.text(this.originX, 140, text, {
+                        fontSize: '22px',
+                        color
+                    }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+                }
+                scheduleReturn(instanceId, entryX, entryY) {
+                    this.time.delayedCall(RESULT_RETURN_DELAY, () => {
+                        this.scene.start('Arena', { instanceId, entryX, entryY });
                     });
                 }
                 checkPortalTriggers() {
